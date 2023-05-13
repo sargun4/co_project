@@ -1,0 +1,14 @@
+var X
+add R0 R1 R2
+mov_imm R0 $4
+mov_reg R0 R1
+mul R3 R2 R1
+ld R0 X
+mov_imm R0 $129
+mov_imm R9 $32
+mul R3 R2 R1
+lo R2
+add R0 4 3
+st R1 4
+
+st R2 2

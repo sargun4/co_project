@@ -1,0 +1,20 @@
+add R1 R2 R3
+sub R1 R2 R3
+mov_imm R1 $12
+mov_reg R1 R2
+ld R1 var_name2
+st R2 var_name1
+mul R1 R2 R3
+div R3 R4
+rs R1 $12
+ls R1 $13
+xor R1 R2 R3
+or R1 R2 R3
+and R1 R2 R3
+not R1 R2
+cmp R1 R2
+jmp label1
+jlt label2
+jgt label3
+je label4
+hlt
