@@ -26,7 +26,7 @@ variables = {}
 labels = {}
 mem_start = 0
 var_flag = 0
-line_num = 0
+line_num = -1
 
 overflow_flag, less_than_flag, greater_than_flag, equal_flag = 0, 0, 0, 0
 
@@ -62,9 +62,7 @@ def imm_to_bin(num, line_num):
     except:
         send_error(f"Illegal Immediate Values, line {line_num}")
 
-def var_to_bin(var, line_num):
-    if var not in variables:
-        send_error(f"Variable not declared at beginning, line {line_num}")
+def var_to_bin(var):
     return variables[var]["mem"]
 
 def get_ins(s):
@@ -73,7 +71,7 @@ def get_ins(s):
     if s[0] == "var" and not var_flag:
         if s[1] not in variables:
             line_num -= 1
-            variables[s[1]] = {"mem": get_mem_addr(mem_start), "value": None}
+            variables[s[1]] = {"mem": None, "value": None}
             mem_start += 1
         else:
             send_error(f"Variable already declared")
@@ -81,8 +79,8 @@ def get_ins(s):
         send_error(f"Variable not declared at the beginning, line {line_num}")
     elif ":" in s[0]:
         if s[0][:-1] not in labels:
-            line_num -= 1
             labels[s[0][:-1]] = {"Line": bin(line_num)[2:].zfill(7)}
+            line_num -= 1
             get_ins(s[1:])
         else:
             send_error(f"Label already declared, line {line_num}")
@@ -118,13 +116,17 @@ def get_ins(s):
                 if len(s) != 3:
                     send_error(f"General Syntax Error, line {line_num}")
                 else:
-                    ins = ins + reg_to_bin(s[1], line_num) + var_to_bin(s[2], line_num)
+                    ins = [ins, reg_to_bin(s[1], line_num), s[2]]
+                    if s[2] not in variables:
+                        send_error(f"Variable not declared at beginning, line {line_num}")
                     assembly.append(ins)
             elif s[0] == "st":
                 if len(s) != 3:
                     send_error(f"General Syntax Error, line {line_num}")
                 else:
-                    ins = ins + reg_to_bin(s[1], line_num) + var_to_bin(s[2], line_num)
+                    ins = [ins, reg_to_bin(s[1], line_num), s[2]]
+                    if s[2] not in variables:
+                        send_error(f"Variable not declared at beginning, line {line_num}")
                     assembly.append(ins)
             elif s[0] in ["rs", "ls"]:
                 if len(s) != 3:
@@ -160,6 +162,9 @@ if assembly[-1] != "1101000000000000":
 elif len(assembly) > 128:
     f.write("Assembler instruction limit reached\n")
 else:
+    for var in variables.keys():
+        line_num += 1
+        variables[var]["mem"] = get_mem_addr(line_num)
     for i in range(0, len(assembly)):
         if len(assembly[i]) == 2:
             if assembly[i][1] not in labels:
@@ -168,6 +173,8 @@ else:
                 exit(0)
             else:
                 assembly[i] = assembly[i][0] + labels[assembly[i][1]]["Line"]
+        elif len(assembly[i]) == 3:
+            assembly[i] = assembly[i][0] + assembly[i][1] + var_to_bin(assembly[i][2])
     for i in assembly:
         f.write(f"{i}\n")
 f.close()
