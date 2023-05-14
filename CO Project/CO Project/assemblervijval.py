@@ -63,11 +63,12 @@ def checklabel(strin,inde,listt):
     else:
         return co
     
-
+varc=0
 def opcode(l,ind,biglist,actu,varindex):
     global progl
+    global varc
 
-    try:
+    '''try:
         counthlt=0
         for i in biglist:
             if "hlt" in i:
@@ -76,19 +77,20 @@ def opcode(l,ind,biglist,actu,varindex):
         if counthlt==0:
             raise Error
     except:
-        return "Error: No Hlt instruction present"
+        return "Error: No Hlt instruction present"'''
             
 
     if len(l)==1:
         s=l[0]
         try:
             if s=="hlt":
+                varc=1
                 return "11010_00000000000"
                 
             else:
                 raise Error
         except:
-            return ("Error: Wrong")
+            return ("Error: General Syntax Error")
             
            
            
@@ -99,6 +101,7 @@ def opcode(l,ind,biglist,actu,varindex):
         r=l[1]
         if s[-2::-1][::-1] in labeldict:
             lllll=[r]
+            varc=1
             return opcode(lllll,ind,biglist,actu,varindex)
         else:
 
@@ -111,11 +114,17 @@ def opcode(l,ind,biglist,actu,varindex):
             except:
                 return ("Error: Incorrect Instruction name")
             if s=='var':
-                xd=str(bin(progl-varindex)[2:])   
-                fs=make7(xd)
-                vardict[r]=fs;                              
-                progl+=1 
-                return None
+                try:
+                    if varc==1:
+                        raise Error
+                    else:
+                        xd=str(bin(progl-varindex)[2:])   
+                        fs=make7(xd)
+                        vardict[r]=fs;                              
+                        progl+=1 
+                        return None
+                except:
+                    return "Error: Variable not declared in beginning"
             else:
                 try:
                     if s!="jmp":
@@ -151,7 +160,7 @@ def opcode(l,ind,biglist,actu,varindex):
                 except:
                     return ("Error: Variable accessed without declaration")
                 
-
+                varc=1
                 return t
 
                                             
@@ -162,6 +171,7 @@ def opcode(l,ind,biglist,actu,varindex):
         s=l[0]
         if s[-2::-1][::-1] in labeldict:
             lllll=[l[1],l[2],l[3]]
+            varc=1
             return opcode(lllll,ind,biglist,actu,varindex)
         else:
 
@@ -179,7 +189,7 @@ def opcode(l,ind,biglist,actu,varindex):
             
             except:
                 return "Error: Incorrect instruction name"
-            
+            varc=1
             return t
             
         
@@ -192,6 +202,7 @@ def opcode(l,ind,biglist,actu,varindex):
 
             if s[-2::-1][::-1] in labeldict:
                 lllll=[l[1],l[2]]
+                varc=1
                 return opcode(lllll,ind,biglist,actu,varindex)
                 
             else:
@@ -237,7 +248,7 @@ def opcode(l,ind,biglist,actu,varindex):
                         return (f"Error: Invalid immediate value (more than 7 bits)")
                     except Error5:
                         return (f"Error: Immediate value not whole number")
-                    
+                    varc=1
                     return t     
                 
                 else:
@@ -248,12 +259,15 @@ def opcode(l,ind,biglist,actu,varindex):
                                     try:
                                         if r in regdict:
                                             t=groupcdict[s]+"_"+regdict[p]+"_"+regdict[r]
+                                            varc=1
                                             return t
                                         elif r in vardict:
                                             t=groupddict[s]+"_"+regdict[p]+"_"+vardict[r]
+                                            varc=1
                                             return t
                                         elif r in vardict.values():
                                             t=groupddict[s]+"_"+regdict[p]+"_"+r
+                                            varc=1
                                             return t
                                         elif r[0]=="R" or r[0]=="r":
                                             raise Error
@@ -273,9 +287,14 @@ def opcode(l,ind,biglist,actu,varindex):
                         return "Error: Incorrect instruction type"
 
                 
-f=open("assemblycode.txt")
-h=open("binarycode.txt","w")
+f=open("input.txt")
+h=open("output.txt","w")
 listoflines=f.readlines()
+for i in range(len(listoflines)-1):
+    if listoflines[i]=="\n":
+        del listoflines[i]
+
+
 varindex=0
 progl=len(listoflines)
 xy=0
@@ -302,31 +321,21 @@ for i in range(len(listoflines)):
            xy+=1
            erc+=1
        else:
-           
+            if opcode(l,i,listoflines,xy,varindex)=="11010_00000000000" and i!=len(listoflines)-1:
+                erc+=1
+                g.write(f"Error: Halt not used as last instruction in line {i+1}\n")
             final=fina+":"+opcode(l,i,listoflines,xy,varindex)
             h.write(f"{opcode(l,i,listoflines,xy,varindex)}\n")
             xy+=1
-h.close()
-    
+
+h.close()  
+h=open("output.txt")
+r=h.read()
+if "11010_00000000000" not in r:
+    g.write(f"Error: Halt not present in the program\n")
+    erc+=1
+g.close()
 if erc>=1:
-        h=open("binarycode.txt","w")
+        h=open("output.txt","w")
         h.write("No Binary generated due to errors encountered")
         h.close()
-
-
-    
-
-
-
-#print(vardict)
-#print(labeldict)
-'''x="hlt_label: hlt"
-l=x.split(" ")
-ll=['hlt']
-print(opcode(ll,0,0,3))'''
-
-
-
-
-    
-

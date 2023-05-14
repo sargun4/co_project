@@ -1,0 +1,1 @@
+Error: Halt not used as last instruction in line 7
