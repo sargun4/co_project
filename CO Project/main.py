@@ -88,6 +88,8 @@ def get_ins(s):
         elif s[0] not in instructions:
             send_error(f"Typos in instruction name, line {line_num}")
         elif s[0] == "hlt":
+            if len(s) != 1:
+                send_error(f"General Syntax Error, line {line_num}")
             assembly.append(instructions[s[0]])
             return
         else:
