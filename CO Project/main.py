@@ -27,6 +27,7 @@ labels = {}
 mem_start = 0
 var_flag = 0
 line_num = -1
+error_flag = 0
 
 overflow_flag, less_than_flag, greater_than_flag, equal_flag = 0, 0, 0, 0
 
@@ -66,91 +67,88 @@ def var_to_bin(var):
     return variables[var]["mem"]
 
 def get_ins(s):
-    global var_flag, mem_start, line_num
+    global var_flag, mem_start, line_num, error_flag
     line_num += 1
-    try:
-        if s[0] == "var" and not var_flag:
-            if s[1] not in variables:
-                line_num -= 1
-                variables[s[1]] = {"mem": None, "value": None}
-                mem_start += 1
-            else:
-                send_error(f"Variable already declared")
-        elif s[0] == "var" and var_flag:
-            send_error(f"Variable not declared at the beginning, line {line_num}")
-        elif ":" in s[0]:
-            if s[0][:-1] not in labels:
-                labels[s[0][:-1]] = {"Line": bin(line_num)[2:].zfill(7)}
-                line_num -= 1
-                get_ins(s[1:])
-            else:
-                send_error(f"Label already declared, line {line_num}")
-        elif s[0] not in instructions:
-            send_error(f"Typos in instruction name, line {line_num}")
-        elif s[0] == "hlt":
-            if len(s) != 1:
-                send_error(f"General Syntax Error, line {line_num}")
-            assembly.append(instructions[s[0]])
-            return
+    if s[0] == "var" and not var_flag:
+        if s[1] not in variables:
+            line_num -= 1
+            variables[s[1]] = {"mem": None, "value": None}
+            mem_start += 1
         else:
-            ins = instructions[s[0]]
-            var_flag = 1
-            if s[0] == "mov":
-                if len(s) != 3:
-                    send_error(f"General Syntax Error, line {line_num}")
-                if "$" in s[2]:
-                    ins = ins[0] + reg_to_bin(s[1], line_num) + imm_to_bin(s[2], line_num)
+            send_error(f"Variable already declared")
+    elif s[0] == "var" and var_flag:
+        send_error(f"Variable not declared at the beginning, line {line_num}")
+    elif ":" in s[0]:
+        if s[0][:-1] not in labels:
+            labels[s[0][:-1]] = {"Line": bin(line_num)[2:].zfill(7)}
+            line_num -= 1
+            get_ins(s[1:])
+        else:
+            send_error(f"Label already declared, line {line_num}")
+    elif s[0] not in instructions:
+        send_error(f"Typos in instruction name, line {line_num}")
+    elif s[0] == "hlt":
+        assembly.append(instructions[s[0]])
+        if len(s) != 1:
+            send_error(f"General Syntax Error, line {line_num}")
+        return
+    else:
+        ins = instructions[s[0]]
+        var_flag = 1
+        if s[0] == "mov":
+            if len(s) != 3:
+                send_error(f"General Syntax Error, line {line_num}")
+            if "$" in s[2]:
+                ins = ins[0] + reg_to_bin(s[1], line_num) + imm_to_bin(s[2], line_num)
+                assembly.append(ins)
+            else:
+                if s[2] == "FLAGS":
+                    ins = ins[1] + reg_to_bin(s[1], line_num) + "111"
                     assembly.append(ins)
                 else:
-                    if s[2] == "FLAGS":
-                        ins = ins[1] + reg_to_bin(s[1], line_num) + "111"
-                        assembly.append(ins)
-                    else:
-                        ins = ins[1] + reg_to_bin(s[1], line_num) + reg_to_bin(s[2], line_num)
-                        assembly.append(ins)
-            elif len(ins) == 7:
-                if len(s) != 4:
-                    send_error(f"General Syntax Error, line {line_num}")
-                else:
-                    ins = ins + reg_to_bin(s[1], line_num) + reg_to_bin(s[2], line_num) + reg_to_bin(s[3], line_num)
+                    ins = ins[1] + reg_to_bin(s[1], line_num) + reg_to_bin(s[2], line_num)
                     assembly.append(ins)
-            elif len(ins) == 6:
-                if s[0] == "ld":
-                    if len(s) != 3:
-                        send_error(f"General Syntax Error, line {line_num}")
-                    else:
-                        ins = [ins, reg_to_bin(s[1], line_num), s[2]]
-                        if s[2] not in variables:
-                            send_error(f"Variable not declared at beginning, line {line_num}")
-                        assembly.append(ins)
-                elif s[0] == "st":
-                    if len(s) != 3:
-                        send_error(f"General Syntax Error, line {line_num}")
-                    else:
-                        ins = [ins, reg_to_bin(s[1], line_num), s[2]]
-                        if s[2] not in variables:
-                            send_error(f"Variable not declared at beginning, line {line_num}")
-                        assembly.append(ins)
-                elif s[0] in ["rs", "ls"]:
-                    if len(s) != 3:
-                        send_error(f"General Syntax Error, line {line_num}")
-                    else:
-                        ins = ins + reg_to_bin(s[1], line_num) + imm_to_bin(s[2], line_num)
-                        assembly.append(ins)
-            elif len(ins) == 10:
+        elif len(ins) == 7:
+            if len(s) != 4:
+                send_error(f"General Syntax Error, line {line_num}")
+            else:
+                ins = ins + reg_to_bin(s[1], line_num) + reg_to_bin(s[2], line_num) + reg_to_bin(s[3], line_num)
+                assembly.append(ins)
+        elif len(ins) == 6:
+            if s[0] == "ld":
                 if len(s) != 3:
                     send_error(f"General Syntax Error, line {line_num}")
                 else:
-                    ins = ins + reg_to_bin(s[1], line_num) + reg_to_bin(s[2], line_num)
+                    ins = [ins, reg_to_bin(s[1], line_num), s[2]]
+                    if s[2] not in variables:
+                        send_error(f"Variable not declared at beginning, line {line_num}")
                     assembly.append(ins)
-            elif len(ins) == 9:
-                if len(s) != 2:
+            elif s[0] == "st":
+                if len(s) != 3:
                     send_error(f"General Syntax Error, line {line_num}")
                 else:
-                    ins = [ins, s[1]]
+                    ins = [ins, reg_to_bin(s[1], line_num), s[2]]
+                    if s[2] not in variables:
+                        send_error(f"Variable not declared at beginning, line {line_num}")
                     assembly.append(ins)
-    except:
-        send_error(f"General Syntax Error, line {line_num}")
+            elif s[0] in ["rs", "ls"]:
+                if len(s) != 3:
+                    send_error(f"General Syntax Error, line {line_num}")
+                else:
+                    ins = ins + reg_to_bin(s[1], line_num) + imm_to_bin(s[2], line_num)
+                    assembly.append(ins)
+        elif len(ins) == 10:
+            if len(s) != 3:
+                send_error(f"General Syntax Error, line {line_num}")
+            else:
+                ins = ins + reg_to_bin(s[1], line_num) + reg_to_bin(s[2], line_num)
+                assembly.append(ins)
+        elif len(ins) == 9:
+            if len(s) != 2:
+                send_error(f"General Syntax Error, line {line_num}")
+            else:
+                ins = [ins, s[1]]
+                assembly.append(ins)
 
 file_name = "input.txt"
 with open(file_name, "r") as fin:
