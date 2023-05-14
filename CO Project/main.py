@@ -164,7 +164,9 @@ with open(file_name, "r") as fin:
 
 f = open("output.txt", "w")
 
-if assembly[-1] != "1101000000000000":
+if "1101000000000000" not in assembly:
+    f.write("Missing hlt instruction\n")
+elif assembly[-1] != "1101000000000000":
     f.write("hlt not being used as last function\n")
 elif len(assembly) > 128:
     f.write("Assembler instruction limit reached\n")
