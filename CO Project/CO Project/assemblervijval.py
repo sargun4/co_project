@@ -112,7 +112,12 @@ def opcode(l,ind,biglist,actu,varindex):
                 else:
                     raise Error
             except:
-                return ("Error: Incorrect Instruction name")
+                return ("Error: Incorrect Instruction ")
+            try:
+                if s=="hlt":
+                    raise Error
+            except:
+                return "Error: General Syntax Error: incorrect syntax for hlt"
             if s=='var':
                 try:
                     if varc==1:
@@ -174,6 +179,23 @@ def opcode(l,ind,biglist,actu,varindex):
             varc=1
             return opcode(lllll,ind,biglist,actu,varindex)
         else:
+            try:
+                if s=="var":
+                    raise Error
+            except:
+                return "Error: Invalid variable name"
+            
+            try:
+                if s in groupedict and s!="var":
+                    raise Error
+            except:
+                return "Error: Invalid Label Name"
+            
+            try:
+                if s=="hlt":
+                    raise Error
+            except:
+                return "Error: General Syntax Error: Incorrect syntax for hlt"
 
             try:
 
@@ -206,6 +228,23 @@ def opcode(l,ind,biglist,actu,varindex):
                 return opcode(lllll,ind,biglist,actu,varindex)
                 
             else:
+                try:
+                    if s=="var":
+                        raise Error
+                except:
+                    return "Error: Invalid variable name"
+                
+                try:
+                    if s in groupedict and s!="var":
+                        raise Error
+                except:
+                    return "Error: Invalid Label Name"
+                
+                try:
+                    if s=="hlt":
+                        raise Error
+                except:
+                    return "Error: General syntax error: Incorrect syntax for hlt"
             
 
                 if r[0]=="$":                                           # GROUP B
@@ -276,19 +315,23 @@ def opcode(l,ind,biglist,actu,varindex):
                                     except Error:
                                         return f"Error: Incorrect Register {r}"
                                     except Error2:
-                                        return "Error: Incorrect Memory Address or variable"              # refine
+                                        return f"Error: Incorrect/undeclared Memory Address or variable {r}"              # refine
                                 else:
                                     raise Error
                             except:
-                                return "Error: Incorrect register accessed"
+                                return f"Error: Incorrect register accessed {p}"
                         else:
                             raise Error
                     except:
                         return "Error: Incorrect instruction type"
+    
+    elif len(l)>4:
+        return "General Syntax Error"
 
                 
 f=open("input.txt")
 h=open("output.txt","w")
+
 listoflines=f.readlines()
 for i in range(len(listoflines)-1):
     if listoflines[i]=="\n":
@@ -301,7 +344,8 @@ xy=0
 f.close()
 erc=0
 yz=0
-g=open("errors.txt","w")
+cc=0
+
 for i in range(len(listoflines)):
     x=listoflines[i]
     x=x.strip()
@@ -317,25 +361,52 @@ for i in range(len(listoflines)):
     
     if opcode(l,i,listoflines,xy,varindex)!=None:
        if opcode(l,i,listoflines,xy,varindex)[:5]=="Error":
-           g.write(f"{opcode(l,i,listoflines,xy,varindex)} in line {i+1}\n")
-           xy+=1
-           erc+=1
-       else:
-            if opcode(l,i,listoflines,xy,varindex)=="11010_00000000000" and i!=len(listoflines)-1:
+           if erc==0:
+                h=open("output.txt","w")
+                h.write(f"{opcode(l,i,listoflines,xy,varindex)} in line {i+1}\n")
+                xy+=1
                 erc+=1
-                g.write(f"Error: Halt not used as last instruction in line {i+1}\n")
-            final=fina+":"+opcode(l,i,listoflines,xy,varindex)
-            h.write(f"{opcode(l,i,listoflines,xy,varindex)}\n")
-            xy+=1
+                h.close()
+           else:
+               h=open("output.txt","a")
+               h.write(f"{opcode(l,i,listoflines,xy,varindex)} in line {i+1}\n")
+               xy+=1
+               h.close()     
+       else:
+            if erc>0:
+                continue
+            else:
+                if cc==0:
+                    h.write(f"{opcode(l,i,listoflines,xy,varindex)}\n")
+                    xy+=1
+                    h.close()
+                    cc+=1
+                    
+                else:
+                    h=open("output.txt","a")
+                    if opcode(l,i,listoflines,xy,varindex)=="11010_00000000000" and i!=len(listoflines)-1 and erc==0:
+                        erc+=1
+                        h.close()
+                        h=open("output.txt","w")
+                        h.write(f"Error: Halt not used as last instruction in line {i+1}\n")
+                        h.close()
+                        break
+                    final=fina+":"+opcode(l,i,listoflines,xy,varindex)
+                    h.write(f"{opcode(l,i,listoflines,xy,varindex)}\n")
+                    xy+=1
+                    h.close()
 
 h.close()  
 h=open("output.txt")
 r=h.read()
-if "11010_00000000000" not in r:
-    g.write(f"Error: Halt not present in the program\n")
+h.close()
+if "11010_00000000000" not in r and erc==0:
+    h=open("output.txt","w")
+    h.write(f"Error: Halt not present in the program\n")
     erc+=1
-g.close()
-if erc>=1:
+h.close()
+
+'''if erc>=1:
         h=open("output.txt","w")
         h.write("No Binary generated due to errors encountered")
-        h.close()
+        h.close()'''
