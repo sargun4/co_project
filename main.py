@@ -178,7 +178,7 @@ if "1101000000000000" not in assembly:
     f.write("Missing hlt instruction")
 elif assembly[-1] != "1101000000000000":
     f.write("hlt not being used as last function\n")
-elif len(assembly) > 128:
+elif len(assembly) + len(variables) > 128:
     f.write("Assembler instruction limit reached\n")
 else:
     for var in variables.keys():
