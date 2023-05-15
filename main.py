@@ -79,21 +79,27 @@ def get_ins(s):
             send_error(f"Variable already declared")
     elif s[0] == "var" and var_flag:
         send_error(f"Variable not declared at the beginning, line {file_line}")
-    elif ":" in s[0]:
+    elif ":" in s[0] and s[0][-1] == ":":
         if s[0][:-1] not in labels:
             labels[s[0][:-1]] = {"Line": bin(line_num)[2:].zfill(7)}
             line_num -= 1
-            get_ins(s[1:])
+            if len(s) > 1:
+                get_ins(s[1:])
+            else:
+                send_error(f"No instruction, line {file_line}")
         else:
             send_error(f"Label already declared, line {file_line}")
+    elif ":" in s[0]:
+        send_error(f"No space between colon and instruction, line {file_line}")
+    elif len(s) > 1 and ":" in s[1]:
+        send_error(f"Space between label and colon, line {file_line}")
     elif s[0] not in instructions:
         send_error(f"Typos in instruction name, line {file_line}")
     elif s[0] == "hlt":
         assembly.append(instructions[s[0]])
         if len(s) != 1:
             send_error(f"General Syntax Error, line {file_line}")
-        return
-    else:
+    elif s[0] in instructions:
         ins = instructions[s[0]]
         var_flag = 1
         if s[0] == "mov":
@@ -150,6 +156,8 @@ def get_ins(s):
             else:
                 ins = [ins, s[1], file_line]
                 assembly.append(ins)
+    else:
+        send_error(f"General Syntax Error, line {file_line}")
 
 file_name = "input.txt"
 with open(file_name, "r") as fin:
@@ -161,11 +169,13 @@ with open(file_name, "r") as fin:
             line = line[:-1]
         line = line.split()
         get_ins(line)
+        
 
 f = open("output.txt", "w")
 
+
 if "1101000000000000" not in assembly:
-    f.write("Missing hlt instruction\n")
+    f.write("Missing hlt instruction")
 elif assembly[-1] != "1101000000000000":
     f.write("hlt not being used as last function\n")
 elif len(assembly) > 128:
