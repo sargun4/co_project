@@ -34,6 +34,7 @@ overflow_flag, less_than_flag, greater_than_flag, equal_flag = 0, 0, 0, 0
 
 assembly = []
 
+
 def send_error(error_msg):
     f = open("output.txt", "w")
     f.write(f"{error_msg}\n")
@@ -44,15 +45,17 @@ def reg_to_bin(reg, file_line):
     if reg == "FLAGS":
         send_error(f"Illegal use of FLAGS registered, line {file_line}")
     try:
-        if len(reg) == 2 and reg[0].lower() == "r":
+        if len(reg) == 2 and reg[0] == "R":
             return (bin(int(reg[1]))[2:]).zfill(3)
         else:
             send_error(f"Typos in register name, line {file_line}")
     except:
         send_error(f"Typos in register name, line {file_line}")
 
+
 def get_mem_addr(mem):
     return bin(mem)[2:].zfill(7)
+
 
 def imm_to_bin(num, file_line):
     try:
@@ -64,16 +67,22 @@ def imm_to_bin(num, file_line):
     except:
         send_error(f"Illegal Immediate Values, line {file_line}")
 
+
 def var_to_bin(var):
     return variables[var]["mem"]
+
 
 def get_ins(s):
     global var_flag, mem_start, line_num, error_flag, file_line
     line_num += 1
     if s[0] == "var" and not var_flag:
-        if s[1] not in variables:
+        if len(s) != 2:
+            send_error(f"Error in variable assignment, line {file_line}")
+        elif s[1] not in variables:
             line_num -= 1
             variables[s[1]] = {"mem": None, "value": None}
+            if s[1] in ["R1", "R2", "R3", "R4", "R5", "R6", "FLAGS"]:
+                send_error(f"Use of register name as variable name, line {file_line}")
             mem_start += 1
         else:
             send_error(f"Variable already declared")
@@ -159,6 +168,7 @@ def get_ins(s):
     else:
         send_error(f"General Syntax Error, line {file_line}")
 
+
 file_name = "input.txt"
 with open(file_name, "r") as fin:
     for line in fin:
@@ -169,10 +179,8 @@ with open(file_name, "r") as fin:
             line = line[:-1]
         line = line.split()
         get_ins(line)
-        
 
 f = open("output.txt", "w")
-
 
 if "1101000000000000" not in assembly:
     f.write("Missing hlt instruction")
