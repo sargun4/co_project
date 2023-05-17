@@ -100,7 +100,7 @@ def get_ins(s):
     elif ":" in s[0]:
         send_error(f"No space between colon and instruction, line {file_line}")
     elif len(s) > 1 and ":" in s[1]:
-        send_error(f"Space between label and colon, line {file_line}")
+        send_error(f"General Syntax Error, line {file_line}")
     elif s[0] not in instructions:
         send_error(f"Typos in instruction name, line {file_line}")
     elif s[0] == "hlt":
