@@ -16,11 +16,11 @@ def check_overflow(reg):
         flags[0] = 1
     if (reg > 65535):
         flags[0] = 1
-        reg = lower_16(reg)
+        reg = takelower_16(reg)
     return reg
 
 
-def lower_16(n):
+def takelower_16(n):
     b = bin(n)[2:]
     l = len(b)-16
     n = int(b[l:], 2)
@@ -40,24 +40,26 @@ def typeA(instrn, op1, op2):  # add,sub,mul,xor,or,and(arithmetic)
         res = op1 * op2
         res = check_overflow(res)
         return res
+    elif instrn == "and":
+        res = op1 & op2
+        return res
     elif instrn == "xor":
         res = op1 ^ op2
         return res
     elif instrn == "or":
         res = op1 | op2
         return res
-    elif instrn == "and":
-        res = op1 & op2
-        return res
+    
 
 # type B
 def typeB(instrn, imm, reg):  # use imm values
     if instrn == "mov":
         return imm
-    elif instrn == "rs":
-        return reg >> imm
+    
     elif instrn == "ls":
         return reg << imm
+    elif instrn == "rs":
+        return reg >> imm
 
 # type C
 def typeC(instrn, updated_val, op):  # mov,div,notcmp
@@ -66,12 +68,6 @@ def typeC(instrn, updated_val, op):  # mov,div,notcmp
             op = int(convert_flagstobin(), 2)
         reset_flags()
         return op
-    elif instrn == "div":
-        reg_list[0] = updated_val//op
-        reg_list[1] = updated_val % op
-        return updated_val
-    elif instrn == "not":
-        return op ^ 65535
     elif instrn == "cmp":
         if updated_val == op:  # Equal - E flag set
             flags[3] = 1
@@ -80,6 +76,13 @@ def typeC(instrn, updated_val, op):  # mov,div,notcmp
         else:  # Greater than - G
             flags[2] = 1
         return updated_val
+    elif instrn == "div":
+        reg_list[0] = updated_val//op
+        reg_list[1] = updated_val % op
+        return updated_val
+    elif instrn == "not":
+        return op ^ 65535
+    
 
 # type D
 def typeD(instrn, mem, reg):  # ld,st(memory instrns)
@@ -111,6 +114,20 @@ def typeF():
     halted = True
 
 
+def reset_flags():
+    for i in range(4):
+        flags[i] = 0
+
+
+def check_and_reset_flags(instrn, type):
+    
+    if (instrn == "jlt" or instrn == "jgt" or instrn == "je"):
+        return
+    if (instrn == "mov" and type == "C"):
+        return
+    else:
+        reset_flags()
+
 def execute_instruction(type, line, instrn):
     check_and_reset_flags(instrn, type)
 
@@ -140,21 +157,6 @@ def execute_instruction(type, line, instrn):
     
     else:
         typeF()
-
-
-def check_and_reset_flags(instrn, type):
-    
-    if (instrn == "jlt" or instrn == "jgt" or instrn == "je"):
-        return
-    if (instrn == "mov" and type == "C"):
-        return
-    else:
-        reset_flags()
-
-
-def reset_flags():
-    for i in range(4):
-        flags[i] = 0
 
 
 def convert_to_16bit_bin(num):
@@ -210,7 +212,7 @@ for line in instrunctns:
 pc = 0 
 
 
-while halted == False:
+while not halted:
     opcode = instrunctns[pc][:5]
     instrn = opcodes_dict[opcode][0]
     # type = opcodes_dict[1]
@@ -221,8 +223,8 @@ while halted == False:
     pc += 1
 
 
-c = 0
+ctr = 0
 # print \ memory dump
 for i in memory:
     print(i)
-    c += 1
+    ctr += 1
