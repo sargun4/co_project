@@ -164,9 +164,9 @@ def convert_to_16bit_bin(num):
     b = (16-len(a))*"0" + a
     return b
 
-def convert_to_8_bit_bin(num):
+def convert_to_7_bit_bin(num):
     a = bin(int(num))[2:]
-    b = (8-len(a))*"0" + a
+    b = (7-len(a))*"0" + a
     return b
 
 def convert_flagstobin():
@@ -176,7 +176,7 @@ def convert_flagstobin():
     return f
 
 def printregs(pc):
-    print(convert_to_8_bit_bin(pc)+" "+convert_to_16bit_bin(reg_list[0])+" "+convert_to_16bit_bin(reg_list[1])
+    print(convert_to_7_bit_bin(pc)+" "+convert_to_16bit_bin(reg_list[0])+" "+convert_to_16bit_bin(reg_list[1])
           + " "+convert_to_16bit_bin(reg_list[2]) + " "+convert_to_16bit_bin(reg_list[3])+" " +
           convert_to_16bit_bin(reg_list[4])+" "+convert_to_16bit_bin(reg_list[5])+" " +
           convert_to_16bit_bin(reg_list[6])+" "+convert_flagstobin())
