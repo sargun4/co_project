@@ -1,3 +1,8 @@
+# check for 
+# 0001000010000101
+# 0010100010000011
+# 1101000000000000
+
 opcodes_dict = {"00000": ["add", "A"], "00001": ["sub", "A"], "00010": ["mov", "B"], "00011": ["mov", "C"], "00100": ["ld", "D"],
            "00101": ["st", "D"], "00110": ["mul", "A"], "00111": ["div", "C"], "01000": ["rs", "B"], "01001": ["ls", "B"],
            "01010": ["xor", "A"], "01011": ["or", "A"], "01100": ["and", "A"], "01101": ["not", "C"], "01110": ["cmp", "C"],
@@ -120,7 +125,6 @@ def reset_flags():
 
 
 def check_and_reset_flags(instrn, type):
-    
     if (instrn == "jlt" or instrn == "jgt" or instrn == "je"):
         return
     if (instrn == "mov" and type == "C"):
@@ -137,9 +141,9 @@ def execute_instruction(type, line, instrn):
         reg_list[reg_dict[line[7:10]]] = typeA(instrn, op1, op2)
     
     elif type == "B":
-        imm = int(line[8:], 2)
-        reg = reg_list[reg_dict[line[5:8]]]
-        reg_list[reg_dict[line[5:8]]] = typeB(instrn, imm, reg)
+        imm = int(line[9:], 2)
+        reg = reg_list[reg_dict[line[6:9]]]
+        reg_list[reg_dict[line[6:9]]] = typeB(instrn, imm, reg)
     
     elif type == "C":
         updated_val = reg_list[reg_dict[line[10:13]]]
@@ -147,12 +151,12 @@ def execute_instruction(type, line, instrn):
         reg_list[reg_dict[line[10:13]]] = typeC(instrn, updated_val, op)
     
     elif type == "D":
-        mem = int(line[8:], 2)
-        reg = reg_list[reg_dict[line[5:8]]]
-        reg_list[reg_dict[line[5:8]]] = typeD(instrn, mem, reg)
+        mem = int(line[9:], 2)
+        reg = reg_list[reg_dict[line[6:9]]]
+        reg_list[reg_dict[line[6:9]]] = typeD(instrn, mem, reg)
     
     elif type == "E":
-        mem = int(line[8:], 2)
+        mem = int(line[9:], 2)
         typeE(instrn, mem)
     
     else:
@@ -183,7 +187,7 @@ def printregs(pc):
 
 # def store_regs(pc):
 #     register_values = {
-#         "PC": convert_to_8_bit_bin(pc),
+#         "PC": convert_to_7_bit_bin(pc),
 #         "R0": convert_to_16bit_bin(reg_list[0]),
 #         "R1": convert_to_16bit_bin(reg_list[1]),
 #         "R2": convert_to_16bit_bin(reg_list[2]),
@@ -222,9 +226,10 @@ while not halted:
     printregs(current)
     pc += 1
 
-
 ctr = 0
 # print \ memory dump
 for i in memory:
     print(i)
     ctr += 1
+
+
