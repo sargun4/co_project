@@ -201,7 +201,7 @@ def execute_instruction(type, line, instrn):
         op2 = reg_list[reg_dict[line[13:]]]
         reg_list[reg_dict[line[7:10]]] = typeG(instrn, op1, op2)
     elif type == "G1":
-        imm = float_to_imm(line[9:])
+        imm = float_to_imm(line[8:])
         reg_list[reg_dict[line[5:8]]] = imm
     else:
         typeF()
